@@ -1,23 +1,16 @@
-package Com.StudentInfo.Students.Exception;
+package Com.StudentInfo.Students.ExceptionHandler;
 
 import java.time.LocalDateTime;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data
-//@AllArgsConstructor
+@AllArgsConstructor
 public class AppError {
 
-	
-	private LocalDateTime timestamp;
+	private LocalDateTime time;
 	private String message;
 	private int StatusCode;
-		
-	public AppError(LocalDateTime now, String message,int StatusCode) {
-		// TODO Auto-generated constructor stub
-		this.timestamp=now;
-		this.message=message;
-		this.StatusCode=StatusCode;
-		
-	}
+	
 }

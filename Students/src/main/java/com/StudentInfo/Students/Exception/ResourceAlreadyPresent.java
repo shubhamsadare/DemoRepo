@@ -1,4 +1,4 @@
-package Com.StudentInfo.Students.Exception;
+package com.StudentInfo.Students.Exception;
 
 public class ResourceAlreadyPresent extends RuntimeException{
  public ResourceAlreadyPresent(String message) {

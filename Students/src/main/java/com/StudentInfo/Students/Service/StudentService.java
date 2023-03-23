@@ -8,6 +8,8 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.StudentInfo.Students.Exception.ResourceAlreadyPresent;
+import com.StudentInfo.Students.Exception.StudentNotFoundException;
 import com.StudentInfo.Students.Model.Students;
 import com.StudentInfo.Students.Model.StudentsDTO;
 import com.StudentInfo.Students.Repository.StudentRepository;
@@ -25,18 +27,30 @@ public class StudentService {
 		return repo.findAll();
 	}
 
-	public Optional<Students> AddStudents(Students s) {
+	public StudentsDTO AddStudents(StudentsDTO s)throws ResourceAlreadyPresent {
 		
-		
-		return repo.findById(s.getId());
-
+		Students entity = Dtotoentity(s);
+		 Optional<Students> findById = repo.findById(entity.getId());
+		 if (findById.isPresent()) {
+			throw new ResourceAlreadyPresent("record alredy present");
+		}else {
+			 repo.save(entity);
+			 StudentsDTO dto = entitytoDto(entity);
+			 return dto;
+		}
 	}
-
-	public StudentsDTO studentbyid(String id) {
+//============
+	public StudentsDTO studentbyid(String id) throws StudentNotFoundException {
 		
-		Optional<Students> findById = repo.findById(id);
-		StudentsDTO entitytoDto = entitytoDto(findById.get());
-		return entitytoDto;
+		 Students studentbyid = repo.findByid(id);
+		if (studentbyid!=null) {
+			 StudentsDTO entitytoDto = entitytoDto(studentbyid);
+			 return entitytoDto;
+		}
+		 else {
+			 throw new StudentNotFoundException("not found student "+id); // return object +status
+		 }
+		
 	}
 
 //  update marks,year,dob,name

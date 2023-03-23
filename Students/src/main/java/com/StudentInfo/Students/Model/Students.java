@@ -25,20 +25,18 @@ import lombok.NoArgsConstructor;
 @Table(name = "students")
 public class Students {
 	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO,generator = "abc")
-	@GenericGenerator(name = "abc",strategy = "uuid2")
+	@GeneratedValue(strategy = GenerationType.AUTO, generator = "abc")
+	@GenericGenerator(name = "abc", strategy = "uuid2")
 	private String id;
 	private String Name;
 	@JsonFormat(pattern = "yyyy-MM-dd")
 	private LocalDate DOB;
 	private String Year;
-	private Double Marks;
+	private int Marks;
 	private String Mbnumber;
 	private String password;
 
 //	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-//	@OneToMany(cascade = CascadeType.ALL)
-//	@JoinColumn()
-//	private List<Students>list;
+
 
 }

@@ -1,33 +1,46 @@
-package Com.StudentInfo.Students.Exception;
+package Com.StudentInfo.Students.ExceptionHandler;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
+
+import com.StudentInfo.Students.Exception.ResourceAlreadyPresent;
+import com.StudentInfo.Students.Exception.StudentNotFoundException;
 
 @RestControllerAdvice
-public class GlobalExceptionHandler extends ResponseEntityExceptionHandler{
+public class GlobalExceptionHandler {
+
+	@ExceptionHandler(MethodArgumentNotValidException.class)
+	@ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
+	public Map<String, String> HandleValidationException(MethodArgumentNotValidException ex) {
+		Map<String, String> map = new HashMap<>();
+		ex.getBindingResult().getFieldErrors().forEach((er) -> {
+			String field = er.getField();
+			String mesg = er.getDefaultMessage();
+			map.put(field, mesg);
+		});
+		return map;
+	}
 
 	@ExceptionHandler(StudentNotFoundException.class)
-	public ResponseEntity<AppError> HandleNotFoundException(StudentNotFoundException st) {
-		LocalDateTime now = LocalDateTime.now();
-		String message = st.getMessage();
-		int code=HttpStatus.NOT_FOUND.value();
-		AppError er=new AppError(now,message,code);
-		
-		return new ResponseEntity<>(er,HttpStatus.NOT_FOUND);
+	@ResponseStatus(value = HttpStatus.NOT_FOUND)
+	public Map<String, String> HandleNotFoundException(StudentNotFoundException ex) {
+		Map<String, String> map = new HashMap<>();
+		map.put("error message", ex.getMessage());
+		return map;
 	}
+
 	@ExceptionHandler(ResourceAlreadyPresent.class)
-	public ResponseEntity<AppError> HandleResourceAlreadyPresentException(ResourceAlreadyPresent rp) {
-		LocalDateTime now = LocalDateTime.now();
-		String message = rp.getMessage();
-		int code=HttpStatus.ALREADY_REPORTED.value();
-		AppError er=new AppError(now,message,code);
-		
-		return new ResponseEntity<>(er,HttpStatus.ALREADY_REPORTED);
+	@ResponseStatus(value = HttpStatus.ALREADY_REPORTED)
+	public AppError HandleResourceAlredy(ResourceAlreadyPresent res) {
+		AppError er = new AppError(LocalDateTime.now(), res.getMessage(), HttpStatus.ALREADY_REPORTED.value());
+		return er;
 	}
-	
+
 }

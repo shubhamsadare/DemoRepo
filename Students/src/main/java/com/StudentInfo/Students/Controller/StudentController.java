@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import javax.validation.Valid;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -21,13 +23,12 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.StudentInfo.Students.Exception.ResourceAlreadyPresent;
+import com.StudentInfo.Students.Exception.StudentNotFoundException;
 import com.StudentInfo.Students.Model.Students;
 import com.StudentInfo.Students.Model.StudentsDTO;
 import com.StudentInfo.Students.Repository.StudentRepository;
 import com.StudentInfo.Students.Service.StudentService;
-
-import Com.StudentInfo.Students.Exception.ResourceAlreadyPresent;
-import Com.StudentInfo.Students.Exception.StudentNotFoundException;
 
 @RestController
 public class StudentController {
@@ -39,17 +40,10 @@ public class StudentController {
 	private StudentRepository repo;
 
 	@PostMapping("/students")
-	public StudentsDTO AddStudents(@RequestBody Students s) {
-		Optional<Students> add = service.AddStudents(s);
-
-		if (add.isPresent()) {
-			throw new ResourceAlreadyPresent("Record Already Present with Same id " + s.getId());
-		} else {
-
-			repo.save(s);// save
-			StudentsDTO entitytoDto = service.entitytoDto(s);// entity to dto
-			return entitytoDto;
-		}
+	public  ResponseEntity<StudentsDTO> AddStudents(@Valid @RequestBody StudentsDTO s)throws ResourceAlreadyPresent {
+		
+		StudentsDTO dto =service.AddStudents(s);
+		return new ResponseEntity<>(dto,HttpStatus.OK);
 	}
 
 	@GetMapping("/students")
@@ -63,34 +57,26 @@ public class StudentController {
 		}
 		return ResponseEntity.of(Optional.of(lidto));// if values present in dto
 	}
-
+//================correct
 	@GetMapping("/students/{id}")
-	public ResponseEntity<Optional<StudentsDTO>> studentbyid(@PathVariable String id) throws StudentNotFoundException {
-		StudentsDTO studentbyid = service.studentbyid(id);
-		Optional<StudentsDTO> sid = Optional.ofNullable(studentbyid);
-
-		if (sid.isPresent()) {
-			return ResponseEntity.ok().body(sid);// return object +status
-
-		} else {
-			throw new StudentNotFoundException("Student not found with id " + id);
-		}
+	public ResponseEntity<StudentsDTO> studentbyid(@Valid @PathVariable String id) throws StudentNotFoundException {
+		return ResponseEntity.ok(service.studentbyid(id)); 
 	}
 
-	@PutMapping("/students/update/{id}")
-	public StudentsDTO UpdateStudents(@RequestBody StudentsDTO s, @PathVariable("id") String id) {
+	@PutMapping("/students/{id}")
+	public StudentsDTO UpdateStudents(@Valid @RequestBody StudentsDTO s, @PathVariable("id") String id) {
 		Students entity = service.UpdateStudents(s, id);
 		return service.entitytoDto(entity);
 	}
 
-	@PatchMapping("/students/patch/{id}")
-	public ResponseEntity<Optional<Students>> SpecificUpdate(@RequestBody StudentsDTO ss,
+	@PatchMapping("/students/{id}")
+	public ResponseEntity<Optional<Students>> SpecificUpdate(@Valid @RequestBody StudentsDTO ss,
 			@PathVariable("id") String id) throws StudentNotFoundException {
 		try {
 
 			StudentsDTO stud = service.SpecificUpdate(ss, id);
 			Optional<StudentsDTO> ofNullable = Optional.ofNullable(stud);
-			ofNullable.orElseThrow(StudentNotFoundException::new);
+			
 
 			if (ofNullable.isPresent()) {
 				return ResponseEntity.accepted().build();
@@ -99,13 +85,13 @@ public class StudentController {
 				return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
 			}
 
-		} catch (StudentNotFoundException e) {
+		} catch (Exception e) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
 		}
 
 	}
 
-	@DeleteMapping("/students/delete")
+	@DeleteMapping("/students")
 	public ResponseEntity<Object> DeleteStudent(@RequestParam("id") String id) throws StudentNotFoundException {
 		Optional<Students> deleteStudent = service.DeleteStudent(id);
 
