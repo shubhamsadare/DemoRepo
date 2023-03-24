@@ -29,9 +29,10 @@ public class Students {
 	@GenericGenerator(name = "abc", strategy = "uuid2")
 	private String id;
 	private String Name;
+	private String email;
 	@JsonFormat(pattern = "yyyy-MM-dd")
 	private LocalDate DOB;
-	private String Year;
+	private  Boolean pass;
 	private int Marks;
 	private String Mbnumber;
 	private String password;

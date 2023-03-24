@@ -2,7 +2,6 @@ package com.StudentInfo.Students.Controller;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import javax.validation.Valid;
 
@@ -23,12 +22,12 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.StudentInfo.Students.Exception.ResourceAlreadyPresent;
-import com.StudentInfo.Students.Exception.StudentNotFoundException;
 import com.StudentInfo.Students.Model.Students;
 import com.StudentInfo.Students.Model.StudentsDTO;
 import com.StudentInfo.Students.Repository.StudentRepository;
 import com.StudentInfo.Students.Service.StudentService;
+
+import Com.StudentInfo.Students.ExceptionHandler.StudentNotFoundException;
 
 @RestController
 public class StudentController {
@@ -40,37 +39,34 @@ public class StudentController {
 	private StudentRepository repo;
 
 	@PostMapping("/students")
-	public  ResponseEntity<StudentsDTO> AddStudents(@Valid @RequestBody StudentsDTO s)throws ResourceAlreadyPresent {
+	public  ResponseEntity<StudentsDTO> AddStudents(@Valid @RequestBody  StudentsDTO s) {
 		
 		StudentsDTO dto =service.AddStudents(s);
 		return new ResponseEntity<>(dto,HttpStatus.OK);
 	}
 
 	@GetMapping("/students")
-	public ResponseEntity<Object> Getall() {
+	public ResponseEntity<List<StudentsDTO>> Getall() {
 
-		List<Students> li = service.Getall();
-		// entity list to dto list
-		List<StudentsDTO> lidto = li.stream().map(service::entitytoDto).collect(Collectors.toList());
-		if (lidto.size() <= 0) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-		}
-		return ResponseEntity.of(Optional.of(lidto));// if values present in dto
+		return ResponseEntity.ok(service.Getall()); 
+		
 	}
 //================correct
 	@GetMapping("/students/{id}")
-	public ResponseEntity<StudentsDTO> studentbyid(@Valid @PathVariable String id) throws StudentNotFoundException {
-		return ResponseEntity.ok(service.studentbyid(id)); 
+	public ResponseEntity<StudentsDTO> studentbyid( @PathVariable String id) throws StudentNotFoundException{
+		Students studentbyid = service.studentbyid(id);
+		StudentsDTO dto = service.entitytoDto(studentbyid);
+		return  ResponseEntity.ok().body(dto); 
 	}
 
 	@PutMapping("/students/{id}")
-	public StudentsDTO UpdateStudents(@Valid @RequestBody StudentsDTO s, @PathVariable("id") String id) {
+	public StudentsDTO UpdateStudents( @RequestBody  StudentsDTO s, @PathVariable("id") String id) {
 		Students entity = service.UpdateStudents(s, id);
 		return service.entitytoDto(entity);
 	}
 
 	@PatchMapping("/students/{id}")
-	public ResponseEntity<Optional<Students>> SpecificUpdate(@Valid @RequestBody StudentsDTO ss,
+	public ResponseEntity<Optional<Students>> SpecificUpdate( @RequestBody StudentsDTO ss,
 			@PathVariable("id") String id) throws StudentNotFoundException {
 		try {
 

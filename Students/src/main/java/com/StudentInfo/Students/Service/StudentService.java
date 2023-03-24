@@ -1,5 +1,6 @@
 package com.StudentInfo.Students.Service;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -8,11 +9,12 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.StudentInfo.Students.Exception.ResourceAlreadyPresent;
-import com.StudentInfo.Students.Exception.StudentNotFoundException;
 import com.StudentInfo.Students.Model.Students;
 import com.StudentInfo.Students.Model.StudentsDTO;
 import com.StudentInfo.Students.Repository.StudentRepository;
+
+import Com.StudentInfo.Students.ExceptionHandler.ResourceAlreadyPresent;
+import Com.StudentInfo.Students.ExceptionHandler.StudentNotFoundException;
 
 @Service
 public class StudentService {
@@ -23,46 +25,44 @@ public class StudentService {
 	@Autowired
 	private ModelMapper modelmapper;
 
-	public List<Students> Getall() {
-		return repo.findAll();
+	public List<StudentsDTO> Getall() {
+		List<Students> li = repo.findAll();
+		return li.stream().map(this::entitytoDto).collect(Collectors.toList());
+
 	}
 
-	public StudentsDTO AddStudents(StudentsDTO s)throws ResourceAlreadyPresent {
-		
+	public StudentsDTO AddStudents(StudentsDTO s) {
+
 		Students entity = Dtotoentity(s);
-		 Optional<Students> findById = repo.findById(entity.getId());
-		 if (findById.isPresent()) {
-			throw new ResourceAlreadyPresent("record alredy present");
-		}else {
-			 repo.save(entity);
-			 StudentsDTO dto = entitytoDto(entity);
-			 return dto;
-		}
+		List<String> collect = repo.findAll().stream().map(ex -> ex.getId()).collect(Collectors.toList());
+		if (collect.contains(entity.getId())) {
+			throw new ResourceAlreadyPresent("record alredy present!!!!!!");
+		} else
+			repo.save(entity);
+
+		return entitytoDto(entity);
 	}
+
 //============
-	public StudentsDTO studentbyid(String id) throws StudentNotFoundException {
+	public Students studentbyid(String id)throws StudentNotFoundException {
+
 		
-		 Students studentbyid = repo.findByid(id);
-		if (studentbyid!=null) {
-			 StudentsDTO entitytoDto = entitytoDto(studentbyid);
-			 return entitytoDto;
+		Students findById = repo.findByid(id);
+
+		if (findById != null) {
+			return findById;
+		} else {
+			System.out.println("=========================exc");
+			throw new StudentNotFoundException("not found to Exception class");
 		}
-		 else {
-			 throw new StudentNotFoundException("not found student "+id); // return object +status
-		 }
-		
 	}
 
 //  update marks,year,dob,name
 	public Students UpdateStudents(StudentsDTO sdto, String id) {
-		
-		Students students = repo.findById(id).get();
-		// update by using setter
-//		 	students.setMbnumber(sdto.getMbnumber());
-//		 	students.setMarks(sdto.getMarks());
 
-		// update by using builder
-		Students build = students.toBuilder().Year(sdto.getYear()).DOB(sdto.getDOB()).Name(sdto.getName())
+		Students students = repo.findById(id).get();
+
+		Students build = students.toBuilder().DOB(sdto.getDOB()).Name(sdto.getName()).pass(sdto.getPass())
 				.Marks(sdto.getMarks()).build();
 
 		return repo.save(build);
@@ -71,16 +71,16 @@ public class StudentService {
 
 //update marks and year
 	public StudentsDTO SpecificUpdate(StudentsDTO ss, String id) {
-		
-		Students students = repo.findById(id).get();
-		Students build = students.toBuilder().Marks(ss.getMarks()).Year(ss.getYear()).build();
+
+		Students students = repo.findByid(id);
+		Students build = students.toBuilder().Marks(ss.getMarks()).pass(ss.getPass()).build();
 		repo.save(build);
 		return entitytoDto(build);
 
 	}
 
 	public Optional<Students> DeleteStudent(String id) {
-		
+
 		return repo.findById(id);
 	}
 
@@ -97,6 +97,10 @@ public class StudentService {
 
 	public Students Dtotoentity(StudentsDTO studentsdto) {
 		return modelmapper.map(studentsdto, Students.class);
+	}
+
+	public List<StudentsDTO> Listofentity(List<Students> students) {
+		return Arrays.asList(modelmapper.map(students, StudentsDTO.class));
 	}
 
 }
